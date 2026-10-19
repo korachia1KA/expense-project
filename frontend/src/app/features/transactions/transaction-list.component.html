@@ -1,0 +1,99 @@
+<div class="page-header">
+  <div>
+    <h1>Transactions</h1>
+    <p>
+      @if (page(); as p) { {{ p.totalElements }} {{ p.totalElements === 1 ? 'transaction' : 'transactions' }} } @else { &nbsp; }
+    </p>
+  </div>
+  <a class="btn btn-primary" routerLink="/transactions/new">+ Add transaction</a>
+</div>
+
+<!-- Filters: each control is bound to a FormControl with [formControl] -->
+<div class="card filters">
+  <input class="input search" type="search" placeholder="Search descriptions…" [formControl]="search" aria-label="Search" />
+  <!-- type="month" produces exactly the "YYYY-MM" format the API expects. Empty = all time. -->
+  <input class="input" type="month" [formControl]="month" aria-label="Month" />
+  <!-- With [formControl] + [ngValue], the selected option is kept in sync even though the
+       options are created later by @for (a plain [value] binding would show the first option). -->
+  <select class="input" [formControl]="type" aria-label="Filter by type">
+    <option [ngValue]="''">All types</option>
+    <option [ngValue]="'EXPENSE'">Expenses</option>
+    <option [ngValue]="'INCOME'">Income</option>
+  </select>
+  <select class="input" [formControl]="categoryId" aria-label="Filter by category">
+    <option [ngValue]="null">All categories</option>
+    @for (c of categories(); track c.id) {
+      <option [ngValue]="c.id">{{ c.name }}</option>
+    }
+  </select>
+  @if (hasFilters) {
+    <button class="btn btn-ghost" type="button" (click)="clearFilters()">Reset</button>
+  }
+</div>
+
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+
+<div class="card table-card" [class.is-loading]="loading()">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th><button class="th-btn" (click)="sortBy('date')">Date {{ sortIndicator('date') }}</button></th>
+          <th><button class="th-btn" (click)="sortBy('description')">Description {{ sortIndicator('description') }}</button></th>
+          <th>Category</th>
+          <th class="num"><button class="th-btn" (click)="sortBy('amount')">Amount {{ sortIndicator('amount') }}</button></th>
+          <th class="actions-col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (t of page()?.content ?? []; track t.id) {
+          <tr>
+            <td class="muted nowrap">{{ t.date | date: 'mediumDate' }}</td>
+            <td>
+              <strong>{{ t.description }}</strong>
+              @if (t.notes) { <div class="muted note">{{ t.notes }}</div> }
+            </td>
+            <td><span class="badge"><span class="swatch" [style.background]="t.category.color"></span>{{ t.category.name }}</span></td>
+            <!-- Color-coded amounts: green "+" for income, red "−" for expenses -->
+            <td class="num">
+              <span class="amount amount-{{ t.type === 'INCOME' ? 'income' : 'expense' }}">
+                {{ t.type === 'INCOME' ? '+' : '−' }}{{ t.amount | currency: 'USD' }}
+              </span>
+            </td>
+            <td class="actions">
+              @if (confirmingDeleteId() === t.id) {
+                <span class="confirm">
+                  <span class="muted">Delete?</span>
+                  <button class="btn btn-danger btn-sm" type="button" (click)="delete(t)">Yes</button>
+                  <button class="btn btn-ghost btn-sm" type="button" (click)="confirmingDeleteId.set(null)">No</button>
+                </span>
+              } @else {
+                <a class="btn btn-secondary btn-sm" [routerLink]="['/transactions', t.id, 'edit']">Edit</a>
+                <button class="btn btn-ghost btn-sm" type="button" (click)="confirmingDeleteId.set(t.id)">Delete</button>
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5" class="empty">
+              @if (loading()) { Loading… } @else { No transactions match your filters. }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination (Angular 17 only allows "as" on the first @if, so the two conditions are nested) -->
+  @if (page(); as p) {
+    @if (p.totalPages > 1) {
+      <div class="pagination">
+        <button class="btn btn-secondary btn-sm" [disabled]="p.page === 0" (click)="goToPage(p.page - 1)">← Prev</button>
+        <span class="muted">Page {{ p.page + 1 }} of {{ p.totalPages }}</span>
+        <button class="btn btn-secondary btn-sm" [disabled]="p.page >= p.totalPages - 1" (click)="goToPage(p.page + 1)">Next →</button>
+      </div>
+    }
+  }
+</div>

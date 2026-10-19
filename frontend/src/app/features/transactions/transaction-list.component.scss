@@ -1,0 +1,45 @@
+.filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  flex-wrap: wrap;
+
+  .search { flex: 1; min-width: 200px; }
+  select, input[type='month'] { width: 170px; }
+}
+
+.table-card { padding: 0; transition: opacity 0.15s; }
+.table-card.is-loading { opacity: 0.6; }
+
+/* Header buttons look like plain header text but are keyboard accessible. */
+.th-btn {
+  all: unset;
+  cursor: pointer;
+  font: inherit;
+  &:hover { color: var(--text); }
+}
+
+.nowrap { white-space: nowrap; }
+.note { font-size: 12px; margin-top: 2px; }
+
+.actions-col { width: 1%; }
+.actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+  .filters { flex-direction: column; select, input[type='month'] { width: 100%; } }
+}

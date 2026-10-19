@@ -1,0 +1,95 @@
+<div class="page-header">
+  <div>
+    <h1>Categories</h1>
+    <p>Group your transactions. Colors are used in charts.</p>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+
+<div class="layout">
+  <!-- Add / edit form -->
+  <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <h2>{{ editingId() === null ? 'New category' : 'Edit category' }}</h2>
+    <div class="form-stack">
+      <div class="field">
+        <label for="name">Name *</label>
+        <input id="name" class="input" formControlName="name" placeholder="e.g. Pets" />
+        @if (form.controls.name.touched && form.controls.name.invalid) {
+          <span class="error">Name is required (max 50 characters).</span>
+        }
+      </div>
+
+      <div class="field">
+        <label for="type">Type</label>
+        <!-- formControlName keeps the <select> in sync with the form, whatever the order of rendering. -->
+        <select id="type" class="input" formControlName="type">
+          <option value="EXPENSE">Expense</option>
+          <option value="INCOME">Income</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="color">Color</label>
+        <div class="color-row">
+          <input id="color" class="input color-input" type="color" formControlName="color" />
+          <!-- Quick picks: clicking a dot sets the color control. -->
+          @for (c of palette; track c) {
+            <button type="button" class="dot" [style.background]="c" [class.selected]="form.controls.color.value === c"
+                    (click)="form.controls.color.setValue(c)" [attr.aria-label]="'Use color ' + c"></button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      @if (editingId() !== null) {
+        <button class="btn btn-secondary" type="button" (click)="cancelEdit()">Cancel</button>
+      }
+      <button class="btn btn-primary" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : (editingId() === null ? 'Add category' : 'Save changes') }}
+      </button>
+    </div>
+  </form>
+
+  <!-- Lists -->
+  <div class="lists">
+    @if (loading()) {
+      <p class="muted">Loading…</p>
+    } @else {
+      @for (group of groups(); track group.title) {
+        <section class="card list-card">
+          <h2>{{ group.title }}</h2>
+          <ul>
+            @for (c of group.items; track c.id) {
+              <li [class.editing]="editingId() === c.id">
+                <span class="swatch big" [style.background]="c.color"></span>
+                <div class="info">
+                  <strong>{{ c.name }}</strong>
+                  <span class="muted">{{ c.transactionCount }} {{ c.transactionCount === 1 ? 'transaction' : 'transactions' }}</span>
+                </div>
+                <div class="row-actions">
+                  @if (confirmingDeleteId() === c.id) {
+                    <span class="confirm">
+                      <span class="muted">Delete?</span>
+                      <button class="btn btn-danger btn-sm" type="button" (click)="delete(c)">Yes</button>
+                      <button class="btn btn-ghost btn-sm" type="button" (click)="confirmingDeleteId.set(null)">No</button>
+                    </span>
+                  } @else {
+                    <button class="btn btn-secondary btn-sm" type="button" (click)="edit(c)">Edit</button>
+                    <button class="btn btn-ghost btn-sm" type="button" (click)="confirmingDeleteId.set(c.id)"
+                            [title]="c.transactionCount > 0 ? 'In use: move its transactions first' : 'Delete'">Delete</button>
+                  }
+                </div>
+              </li>
+            } @empty {
+              <li class="muted">None yet.</li>
+            }
+          </ul>
+        </section>
+      }
+    }
+  </div>
+</div>

@@ -1,0 +1,223 @@
+/*
+ * =====================================================================================
+ * Global styles: a tiny design system shared by every component.
+ *
+ * - Colors, radius and shadow are CSS custom properties ("variables") declared on :root,
+ *   so the whole look can be changed in one place and components just use var(--name).
+ * - Reusable classes (.card, .btn, .input, .field, .badge, .progress...) are defined once
+ *   here; component .scss files only contain layout specific to that component.
+ * - This file is SCSS (Sass): CSS plus nesting (&:hover) and other conveniences, compiled
+ *   to plain CSS by the Angular build.
+ * =====================================================================================
+ */
+:root {
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --surface-alt: #f0f2f7;
+  --border: #e3e6ee;
+  --text: #1d2433;
+  --text-muted: #667085;
+  --primary: #0f766e;          /* teal: "money" without being the same green as income */
+  --primary-hover: #115e59;
+  --primary-soft: #e6f4f2;
+  --danger: #dc2626;
+  --danger-soft: #fef2f2;
+  --warning: #d97706;
+  --warning-soft: #fffbeb;
+  --success: #16a34a;
+  --success-soft: #f0fdf4;
+  --income: #16a34a;           /* green "+" amounts */
+  --expense: #dc2626;          /* red "-" amounts */
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+}
+
+/* border-box: width includes padding and border, which makes layouts predictable. */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--bg);
+}
+
+h1 { font-size: 24px; margin: 0 0 4px; }
+h2 { font-size: 16px; margin: 0 0 12px; }
+a { color: var(--primary); }
+
+.container { max-width: 1120px; margin: 0 auto; padding: 24px 16px 48px; }
+
+/* Title row at the top of each page: heading on the left, actions on the right. */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  p { margin: 0; color: var(--text-muted); }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+.btn-primary { background: var(--primary); color: #fff; &:hover:not(:disabled) { background: var(--primary-hover); } }
+.btn-secondary { background: var(--surface); border-color: var(--border); color: var(--text); &:hover { background: var(--surface-alt); } }
+.btn-ghost { background: transparent; color: var(--text-muted); &:hover { background: var(--surface-alt); color: var(--text); } }
+.btn-danger { background: var(--surface); border-color: #fecaca; color: var(--danger); &:hover { background: var(--danger-soft); } }
+.btn-sm { padding: 5px 10px; font-size: 13px; }
+
+/* ---------- Forms ---------- */
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.form-grid .full { grid-column: 1 / -1; }
+@media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  label { font-weight: 600; font-size: 13px; }
+  .hint, .error { font-size: 12px; }
+  .error { color: var(--danger); }
+}
+
+.input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  background: var(--surface);
+  color: var(--text);
+  &:focus { outline: 2px solid var(--primary-soft); border-color: var(--primary); }
+  /* Angular adds ng-invalid / ng-touched classes to form controls automatically. */
+  &.ng-invalid.ng-touched { border-color: var(--danger); }
+}
+textarea.input { min-height: 90px; resize: vertical; }
+input[type='color'].input { padding: 2px; height: 38px; cursor: pointer; }
+
+/* Segmented control used for the Expense / Income toggle. */
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  button {
+    font: inherit;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: none;
+    background: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+    &.active-expense { background: var(--danger-soft); color: var(--expense); }
+    &.active-income { background: var(--success-soft); color: var(--income); }
+  }
+}
+
+.alert {
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1px solid #fecaca;
+}
+
+/* ---------- Money and categories ---------- */
+.amount { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+.amount-income { color: var(--income); }
+.amount-expense { color: var(--expense); }
+
+/* Small colored dot that shows a category's color. */
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+/* Pill-shaped label: category names, types. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--surface-alt);
+  color: var(--text);
+}
+.badge-INCOME  { background: var(--success-soft); color: var(--income); }
+.badge-EXPENSE { background: var(--danger-soft); color: var(--expense); }
+
+/* ---------- Budget progress bars ---------- */
+/* Green by default, amber above 80 % ("warn"), red above 100 % ("over"). See shared/budget-level.ts. */
+.progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-alt);
+  overflow: hidden;
+  .progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--success);
+    transition: width 0.3s ease;
+  }
+  &.level-warn .progress-fill { background: var(--warning); }
+  &.level-over .progress-fill { background: var(--danger); }
+}
+.level-text-warn { color: var(--warning); }
+.level-text-over { color: var(--danger); }
+
+/* ---------- Tables ---------- */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+tr:last-child td { border-bottom: none; }
+.num { text-align: right; }
+
+.muted { color: var(--text-muted); }
+.empty { text-align: center; padding: 40px 16px; color: var(--text-muted); }
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* Inline "Delete? Yes / No" confirmation used instead of window.confirm(). */
+.confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

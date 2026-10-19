@@ -1,0 +1,23 @@
+# Files that should never be committed to Git.
+
+# Backend: Maven build output and the wrapper jar (mvnw downloads it on first run)
+backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Frontend: installed packages, build output and Angular's build cache
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# IDE / OS clutter
+.idea/
+.vscode/*
+!/.vscode/launch.json
+!/.vscode/tasks.json
+!/.vscode/extensions.json
+frontend/.vscode/
+*.iml
+.DS_Store
+
+# Local environment overrides (may contain secrets)
+.env

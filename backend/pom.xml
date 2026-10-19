@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  pom.xml = the Maven "Project Object Model".
+  It tells Maven (the Java build tool) three things:
+    1. who this project is (groupId / artifactId / version),
+    2. which libraries it needs (<dependencies>),
+    3. how to build it (<build> plugins).
+  Build and test with:  ./mvnw -B verify      Run with:  ./mvnw spring-boot:run
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+      Inheriting from spring-boot-starter-parent gives us tested, compatible versions of every
+      Spring library (and of H2, PostgreSQL, Jackson, Hibernate, Flyway...). That is why most
+      dependencies below have no <version>: the parent decides it.
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.6</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.portfolio</groupId>
+    <artifactId>expensetracker</artifactId>
+    <version>1.0.0</version>
+    <name>expensetracker</name>
+    <description>Personal Expense Tracker - REST API</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <!-- Versions for libraries that the Spring Boot parent does NOT manage. -->
+        <jjwt.version>0.12.6</jjwt.version>
+        <springdoc.version>2.8.13</springdoc.version>
+    </properties>
+
+    <dependencies>
+        <!-- REST controllers, JSON (Jackson) and an embedded Tomcat web server. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- JPA/Hibernate: maps Java classes (@Entity) to database tables; Spring Data repositories. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <!-- Bean Validation (@NotBlank, @DecimalMin, @PastOrPresent...) for request bodies. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <!-- Spring Security: authentication filter chain, BCrypt password hashing. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <!-- Flyway: versioned SQL migrations (src/main/resources/db/migration) create the schema. -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <!-- Since Flyway 10 each database needs its own module; this one adds PostgreSQL support. -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+        <!-- JJWT: creates and verifies JSON Web Tokens. The api is used at compile time;
+             impl + jackson are only needed at runtime (hence scope=runtime). -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Generates OpenAPI docs + an interactive Swagger UI at /swagger-ui.html. -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
+        </dependency>
+
+        <!-- Databases. H2 runs in memory for development/tests; PostgreSQL is used in production. -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Testing: JUnit 5, AssertJ, Mockito, MockMvc (all bundled in starter-test). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Packages everything into one runnable "fat jar" and provides `spring-boot:run`. -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,39 @@
+/* Form on the left, lists on the right; stacked on small screens. */
+.layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.form-stack { display: flex; flex-direction: column; gap: 16px; }
+
+.color-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.color-input { width: 48px; }
+.dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  &.selected { border-color: var(--text); }
+}
+
+.lists { display: flex; flex-direction: column; gap: 16px; }
+.list-card ul { list-style: none; margin: 0; padding: 0; }
+.list-card li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 8px;
+  &:last-child { border-bottom: none; }
+  &.editing { background: var(--primary-soft); }
+}
+.swatch.big { width: 18px; height: 18px; }
+.info { display: flex; flex-direction: column; flex: 1; font-size: 13px; }
+.row-actions { display: flex; gap: 6px; }
+
+@media (max-width: 800px) {
+  .layout { grid-template-columns: 1fr; }
+}

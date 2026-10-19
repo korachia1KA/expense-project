@@ -1,0 +1,55 @@
+# =====================================================================================
+# Runs the whole stack (PostgreSQL + Spring Boot API + Angular/nginx) with one command:
+#
+#     docker compose up --build
+#
+# Then open http://localhost:8092  (demo login: demo@example.com / password123)
+# Stop with Ctrl+C; `docker compose down -v` also deletes the database volume.
+#
+# Each "service" below becomes one container. Containers on the same compose network can
+# reach each other by service name (the backend connects to host "db", nginx proxies to "backend").
+# =====================================================================================
+services:
+  db:
+    # Official PostgreSQL image; "alpine" variants are much smaller.
+    image: postgres:16-alpine
+    environment:
+      # The image creates this database and user on first start.
+      POSTGRES_DB: expensetracker
+      POSTGRES_USER: expensetracker
+      POSTGRES_PASSWORD: expensetracker
+    volumes:
+      # Named volume: data survives `docker compose down` / restarts (removed only with -v).
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      # "Healthy" only once Postgres accepts connections; the backend waits for this.
+      test: ["CMD-SHELL", "pg_isready -U expensetracker -d expensetracker"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    # No "ports:" on purpose: the database is reachable only from inside the compose network.
+
+  backend:
+    build: ./backend                       # uses backend/Dockerfile
+    environment:
+      SPRING_PROFILES_ACTIVE: prod         # loads application-prod.yml (Postgres, port 8080)
+      DB_URL: jdbc:postgresql://db:5432/expensetracker
+      DB_USERNAME: expensetracker
+      DB_PASSWORD: expensetracker
+      # Use your own secret in real deployments: JWT_SECRET=$(openssl rand -base64 48) docker compose up
+      # ${VAR:-default} = use the shell's VAR if set, otherwise this demo value.
+      JWT_SECRET: ${JWT_SECRET:-ZXhwZW5zZS10cmFja2VyLWRvY2tlci1kZW1vLXNlY3JldC1jaGFuZ2UtbWUtMTIzNDU2Nzg5MA==}
+    depends_on:
+      db:
+        condition: service_healthy         # start only after Postgres is ready
+    # Not published to the host either: the browser reaches the API through nginx.
+
+  frontend:
+    build: ./frontend                      # uses frontend/Dockerfile (Angular build + nginx)
+    ports:
+      - "8092:80"                          # host port 8092 → nginx port 80 in the container
+    depends_on:
+      - backend
+
+volumes:
+  db-data:

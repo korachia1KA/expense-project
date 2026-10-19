@@ -1,0 +1,66 @@
+# =====================================================================================
+# Default ("dev") configuration. Spring Boot reads this file automatically at startup.
+# Zero setup needed: the database is an in-memory H2 instance that lives only while
+# the app runs. Start with:  ./mvnw spring-boot:run   -> http://localhost:8082
+#
+# Any value can be overridden without editing this file, e.g. with an environment
+# variable (SERVER_PORT=9000) or a command-line flag (--server.port=9000).
+# The "prod" profile (application-prod.yml) overrides parts of this file for Docker/Postgres.
+# =====================================================================================
+server:
+  # 8082 instead of the usual 8080 so this app can run next to other local projects.
+  port: 8082
+
+spring:
+  application:
+    name: expense-tracker
+  datasource:
+    # H2 in-memory DB. The extra flags make H2 behave like PostgreSQL so the SAME Flyway
+    # SQL scripts work in dev (H2) and production (Postgres):
+    #   MODE=PostgreSQL           -> accept Postgres syntax/semantics
+    #   DATABASE_TO_LOWER=TRUE    -> unquoted identifiers are lower-case, like Postgres
+    #   DEFAULT_NULL_ORDERING=HIGH-> NULLs sort last in ASC, like Postgres
+    url: jdbc:h2:mem:expensetracker;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+  h2:
+    console:
+      # Browse the dev database at http://localhost:8082/h2-console (JDBC URL as above, user "sa").
+      enabled: true
+  jpa:
+    # "Open Session In View" keeps a DB connection open while JSON is rendered. We turn it off
+    # so all database work happens inside service methods (clearer and avoids hidden queries).
+    open-in-view: false
+    hibernate:
+      # The schema is owned by Flyway migrations. Hibernate only VALIDATES that the entities match
+      # the tables at startup, and fails fast if they don't (instead of silently altering tables).
+      ddl-auto: validate
+  flyway:
+    # Run db/migration/V*.sql scripts in order at startup (each one only once, tracked in a table).
+    enabled: true
+  data:
+    web:
+      pageable:
+        # Protects the API from requests like ?size=1000000.
+        max-page-size: 100
+
+app:
+  # Create the demo@example.com account with sample data on startup (see DemoDataSeeder).
+  seed-demo-data: true
+  cors:
+    # Which browser origins may call the API. The browser sends an "Origin" header with every
+    # POST/PUT/DELETE; the Angular dev proxy forwards it unchanged (changeOrigin: false), so
+    # Spring compares it with this list. 4302 = our `ng serve` port, 4200 = Angular's default.
+    # Comma-separated values become a List<String> in SecurityConfig.
+    allowed-origins: http://localhost:4200,http://localhost:4302
+  jwt:
+    # Base64-encoded HMAC key used to sign tokens (must decode to at least 256 bits).
+    # Dev-only default! In production ALWAYS set the JWT_SECRET environment variable.
+    secret: ${JWT_SECRET:ZGV2LW9ubHktc2VjcmV0LWNoYW5nZS1tZS1pbi1wcm9kdWN0aW9uLTEyMzQ1Njc4OTA=}
+    # How long a login lasts: 86 400 000 ms = 24 hours. After that the user must log in again.
+    expiration-ms: 86400000
+
+springdoc:
+  swagger-ui:
+    # Interactive API documentation: http://localhost:8082/swagger-ui.html
+    path: /swagger-ui.html

@@ -1,0 +1,77 @@
+<div class="page-header">
+  <div>
+    <h1>{{ isEdit ? 'Edit transaction' : 'New transaction' }}</h1>
+    <p>{{ isEdit ? 'Update the details of this entry' : 'Record money coming in or going out' }}</p>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+
+@if (loading()) {
+  <p class="muted">Loading…</p>
+} @else {
+  <form class="card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="form-grid">
+      <div class="field full">
+        <label>Type</label>
+        <!-- A segmented toggle instead of a dropdown: two options are faster to pick with one click. -->
+        <div class="segmented" role="group" aria-label="Transaction type">
+          <button type="button" [class.active-expense]="selectedType() === 'EXPENSE'"
+                  [attr.aria-pressed]="selectedType() === 'EXPENSE'" (click)="setType('EXPENSE')">− Expense</button>
+          <button type="button" [class.active-income]="selectedType() === 'INCOME'"
+                  [attr.aria-pressed]="selectedType() === 'INCOME'" (click)="setType('INCOME')">+ Income</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="amount">Amount (USD) *</label>
+        <input id="amount" class="input" type="number" min="0.01" step="0.01" inputmode="decimal"
+               formControlName="amount" placeholder="0.00" />
+        @if (showError('amount')) { <span class="error">Enter an amount greater than 0 with at most 2 decimals.</span> }
+      </div>
+
+      <div class="field">
+        <label for="date">Date *</label>
+        <!-- [max] stops the date picker from offering future dates (the backend rejects them too). -->
+        <input id="date" class="input" type="date" formControlName="date" [max]="maxDate" />
+        @if (showError('date')) { <span class="error">Date is required.</span> }
+      </div>
+
+      <div class="field">
+        <label for="description">Description *</label>
+        <input id="description" class="input" formControlName="description" placeholder="e.g. Groceries" />
+        @if (showError('description')) { <span class="error">Description is required.</span> }
+      </div>
+
+      <div class="field">
+        <label for="categoryId">Category *</label>
+        <!-- [ngValue] keeps the number type (a plain [value] would turn ids into strings). -->
+        <select id="categoryId" class="input" formControlName="categoryId">
+          <option [ngValue]="null" disabled>Choose a category…</option>
+          @for (c of categoryOptions(); track c.id) {
+            <option [ngValue]="c.id">{{ c.name }}</option>
+          }
+        </select>
+        @if (showError('categoryId')) { <span class="error">Pick a category.</span> }
+        @if (categories().length > 0 && categoryOptions().length === 0) {
+          <span class="hint muted">No {{ selectedType() === 'INCOME' ? 'income' : 'expense' }} categories yet.
+            <a routerLink="/categories">Create one</a></span>
+        }
+      </div>
+
+      <div class="field full">
+        <label for="notes">Notes</label>
+        <textarea id="notes" class="input" formControlName="notes" placeholder="Optional details"></textarea>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn-secondary" routerLink="/transactions">Cancel</a>
+      <button class="btn btn-primary" type="submit" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : (isEdit ? 'Save changes' : 'Add transaction') }}
+      </button>
+    </div>
+  </form>
+}

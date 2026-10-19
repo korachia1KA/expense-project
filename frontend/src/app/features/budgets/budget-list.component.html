@@ -1,0 +1,85 @@
+<div class="page-header">
+  <div>
+    <h1>Budgets</h1>
+    <p>Monthly spending limits for {{ monthName() }}</p>
+  </div>
+  <app-month-picker [month]="month()" (monthChange)="changeMonth($event)" />
+</div>
+
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+
+@if (totals().count > 0) {
+  <div class="card overview">
+    <div>
+      <span class="muted">Budgeted</span>
+      <strong>{{ totals().limit | currency: 'USD' }}</strong>
+    </div>
+    <div>
+      <span class="muted">Spent</span>
+      <strong>{{ totals().spent | currency: 'USD' }}</strong>
+    </div>
+    <div class="grow">
+      <app-budget-bar [percent]="totals().limit ? (totals().spent / totals().limit) * 100 : 0" />
+    </div>
+  </div>
+}
+
+<div class="card list" [class.is-loading]="loading()">
+  @for (row of rows(); track row.category.id) {
+    <div class="row">
+      <div class="name">
+        <span class="swatch" [style.background]="row.category.color"></span>
+        <strong>{{ row.category.name }}</strong>
+      </div>
+
+      <div class="progress-col">
+        @if (row.budget; as b) {
+          <div class="figures">
+            <span>{{ b.spent | currency: 'USD' }} of {{ b.limit | currency: 'USD' }}</span>
+            <!-- amber above 80 %, red above 100 % (see shared/budget-level.ts) -->
+            <span class="level-text-{{ budgetLevel(b.percentUsed) }}">
+              {{ b.percentUsed | number: '1.0-1' }}%
+              @if (b.remaining < 0) { · {{ -b.remaining | currency: 'USD' }} over }
+              @else { · {{ b.remaining | currency: 'USD' }} left }
+            </span>
+          </div>
+          <app-budget-bar [percent]="b.percentUsed" />
+        } @else {
+          <span class="muted">No budget · {{ row.spent | currency: 'USD' }} spent</span>
+        }
+      </div>
+
+      <div class="row-actions">
+        @if (editingCategoryId() === row.category.id) {
+          <!-- Inline editor: Enter saves, Escape cancels -->
+          <input class="input limit-input" type="number" min="0.01" step="0.01" placeholder="Limit"
+                 [formControl]="limit" (keydown.enter)="save(row)" (keydown.escape)="cancelEdit()"
+                 aria-label="Monthly limit" />
+          <button class="btn btn-primary btn-sm" type="button" [disabled]="saving()" (click)="save(row)">Save</button>
+          <button class="btn btn-ghost btn-sm" type="button" (click)="cancelEdit()">Cancel</button>
+        } @else if (row.budget && confirmingRemoveId() === row.budget.id) {
+          <!-- The row.budget check matters: in Angular templates `row.budget?.id` evaluates to null
+               (not undefined) when there is no budget, which would equal the initial null state. -->
+          <span class="confirm">
+            <span class="muted">Remove budget?</span>
+            <button class="btn btn-danger btn-sm" type="button" (click)="remove(row.budget!)">Yes</button>
+            <button class="btn btn-ghost btn-sm" type="button" (click)="confirmingRemoveId.set(null)">No</button>
+          </span>
+        } @else {
+          <button class="btn btn-secondary btn-sm" type="button" (click)="startEdit(row)">
+            {{ row.budget ? 'Edit' : 'Set budget' }}
+          </button>
+          @if (row.budget; as b) {
+            <button class="btn btn-ghost btn-sm" type="button" (click)="confirmingRemoveId.set(b.id)">Remove</button>
+          }
+        }
+      </div>
+    </div>
+  } @empty {
+    <p class="empty">
+      @if (loading()) { Loading… } @else { No expense categories yet. Create one on the Categories page. }
+    </p>
+  }
+</div>

@@ -1,0 +1,116 @@
+<div class="page-header">
+  <div>
+    <h1>Dashboard</h1>
+    <p>Your money in {{ monthName() }}</p>
+  </div>
+  <div class="header-actions">
+    <!-- Inputs down, events up: we pass the month in and listen for (monthChange). -->
+    <app-month-picker [month]="month()" (monthChange)="changeMonth($event)" />
+    <a class="btn btn-primary" routerLink="/transactions/new">+ Add transaction</a>
+  </div>
+</div>
+
+@if (error()) {
+  <div class="alert" role="alert">{{ error() }}</div>
+}
+
+@if (summary(); as s) {
+  <div [class.is-loading]="loading()">
+    <!-- Summary cards. CurrencyPipe formats numbers as money: 1234.5 → "$1,234.50". -->
+    <section class="stat-grid">
+      <div class="card stat">
+        <span class="stat-label">Income</span>
+        <span class="stat-value amount-income">{{ s.totalIncome | currency: 'USD' }}</span>
+      </div>
+      <div class="card stat">
+        <span class="stat-label">Expenses</span>
+        <span class="stat-value amount-expense">{{ s.totalExpense | currency: 'USD' }}</span>
+      </div>
+      <div class="card stat">
+        <span class="stat-label">Balance</span>
+        <span class="stat-value" [class.amount-expense]="s.balance < 0">{{ s.balance | currency: 'USD' }}</span>
+      </div>
+      <div class="card stat">
+        <span class="stat-label">Savings rate</span>
+        <!-- DecimalPipe '1.0-1' = at least 1 integer digit, 0 to 1 decimals -->
+        <span class="stat-value">{{ s.savingsRate | number: '1.0-1' }}%</span>
+        <span class="stat-hint">Share of income not spent</span>
+      </div>
+    </section>
+
+    @if (!hasActivity()) {
+      <div class="card empty">
+        <p>No transactions in {{ monthName() }} yet.</p>
+        <a class="btn btn-primary" routerLink="/transactions/new">Add your first one</a>
+      </div>
+    } @else {
+      <!-- The #names connect each <canvas> to a @ViewChild in the component. -->
+      <section class="chart-grid">
+        <div class="card">
+          <h2>Spending by category</h2>
+          @if (s.totalExpense > 0) {
+            <div class="chart-box"><canvas #categoryChart></canvas></div>
+          } @else {
+            <p class="muted">No expenses this month.</p>
+          }
+        </div>
+        <div class="card">
+          <h2>Income vs expenses (6 months)</h2>
+          <div class="chart-box"><canvas #trendChart></canvas></div>
+        </div>
+      </section>
+
+      <section class="chart-grid">
+        <div class="card">
+          <div class="section-head">
+            <h2>Budgets</h2>
+            <a routerLink="/budgets">Manage →</a>
+          </div>
+          <!-- @for needs a "track" expression so Angular can reuse DOM nodes efficiently. -->
+          @for (b of budgeted(); track b.categoryId) {
+            <div class="budget-row">
+              <div class="budget-meta">
+                <span><span class="swatch" [style.background]="b.color"></span> {{ b.name }}</span>
+                <span class="level-text-{{ budgetLevel(b.percentUsed) }}">
+                  {{ b.spent | currency: 'USD' }} / {{ b.budget | currency: 'USD' }}
+                </span>
+              </div>
+              <app-budget-bar [percent]="b.percentUsed" />
+            </div>
+          } @empty {
+            <p class="muted">No budgets for this month. <a routerLink="/budgets">Set one</a></p>
+          }
+        </div>
+        <div class="card">
+          <h2>Daily spending</h2>
+          <div class="chart-box small"><canvas #dailyChart></canvas></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h2>Recent transactions</h2>
+          <a routerLink="/transactions">View all →</a>
+        </div>
+        <ul class="recent">
+          @for (t of recent(); track t.id) {
+            <li>
+              <div>
+                <strong>{{ t.description }}</strong>
+                <span class="muted"> · {{ t.date | date: 'mediumDate' }}</span>
+              </div>
+              <div class="recent-meta">
+                <span class="badge"><span class="swatch" [style.background]="t.category.color"></span>{{ t.category.name }}</span>
+                <span class="amount amount-{{ t.type === 'INCOME' ? 'income' : 'expense' }}">
+                  {{ t.type === 'INCOME' ? '+' : '−' }}{{ t.amount | currency: 'USD' }}
+                </span>
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  </div>
+} @else if (loading()) {
+  <p class="muted">Loading…</p>
+}

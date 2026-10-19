@@ -1,0 +1,61 @@
+/* Styles for the navbar only. Component styles are scoped: they cannot leak into other components. */
+.navbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 24px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  nav {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+
+    a {
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+
+      &:hover { background: var(--surface-alt); color: var(--text); }
+      &.active { background: var(--primary-soft); color: var(--primary); }
+    }
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.brand-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 13px;
+}
+
+.user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .navbar { flex-wrap: wrap; gap: 8px; padding: 10px 16px; }
+  .navbar nav { order: 3; flex-basis: 100%; }
+  .user-name { display: none; }
+}

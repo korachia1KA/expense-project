@@ -1,0 +1,25 @@
+<!-- The navbar is only shown when someone is logged in. auth.isLoggedIn() is a signal, so this
+     block appears/disappears automatically on login/logout. @if is Angular 17's built-in
+     control flow (it replaces the older *ngIf directive). -->
+@if (auth.isLoggedIn()) {
+  <header class="navbar">
+    <a class="brand" routerLink="/dashboard">
+      <span class="brand-mark">$</span> Expense Tracker
+    </a>
+    <nav>
+      <!-- routerLinkActive adds the "active" CSS class while the URL matches the link -->
+      <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a routerLink="/transactions" routerLinkActive="active">Transactions</a>
+      <a routerLink="/budgets" routerLinkActive="active">Budgets</a>
+      <a routerLink="/categories" routerLinkActive="active">Categories</a>
+    </nav>
+    <div class="user">
+      <span class="user-name">{{ auth.currentUser()?.name }}</span>
+      <button class="btn btn-ghost" type="button" (click)="auth.logout()">Log out</button>
+    </div>
+  </header>
+}
+
+<main class="container">
+  <router-outlet />
+</main>
